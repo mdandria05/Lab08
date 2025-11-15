@@ -47,7 +47,9 @@ class Model:
         self.__costo_ottimo = -1
         consumi_settimana = self.__get_consumi_prima_settimana_mese(mese)
         self.__ricorsione([], 1, None, 0, consumi_settimana)
-
+        self.__sequenza_ottima.sort(key=lambda x: x[1])
+        self.__costo_ottimo = self.__sequenza_ottima[0][1]
+        self.__sequenza_ottima = self.__sequenza_ottima[0][0]
         # Traduci gli ID in nomi
         id_to_nome = {impianto.id: impianto.nome for impianto in self._impianti}
         sequenza_nomi = [f"Giorno {giorno}: {id_to_nome[i]}" for giorno, i in enumerate(self.__sequenza_ottima, start=1)]
@@ -56,6 +58,19 @@ class Model:
     def __ricorsione(self, sequenza_parziale, giorno, ultimo_impianto, costo_corrente, consumi_settimana):
         """ Implementa la ricorsione """
         # TODO
+        if len(sequenza_parziale) == 7:
+            self.__sequenza_ottima.append((sequenza_parziale,costo_corrente))
+            return None
+        else:
+            seq_p_a = list(sequenza_parziale)
+            seq_p_b = list(sequenza_parziale)
+            seq_p_a.append(1)
+            seq_p_b.append(2)
+            costo_corrente_a = costo_corrente + consumi_settimana[1][giorno - 1] if ultimo_impianto == seq_p_a[-1] or ultimo_impianto is None else costo_corrente + 5 + consumi_settimana[1][giorno - 1]
+            costo_corrente_b = costo_corrente + consumi_settimana[2][giorno - 1] if ultimo_impianto == seq_p_b[-1] or ultimo_impianto is None else costo_corrente + 5 + consumi_settimana[2][giorno - 1]
+            giorno += 1
+            self.__ricorsione(seq_p_a,giorno,seq_p_a[-1],costo_corrente_a,consumi_settimana)
+            self.__ricorsione(seq_p_b,giorno,seq_p_b[-1],costo_corrente_b,consumi_settimana)
 
     def __get_consumi_prima_settimana_mese(self, mese: int):
         """
@@ -65,6 +80,7 @@ class Model:
         # TODO
         consumi_settimana = {}
         for i in self._impianti:
+            i.get_consumi()
             lista = []
             for c in i.lista_consumi:
                 for g in range(1,8):
